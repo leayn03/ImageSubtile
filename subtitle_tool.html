@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片字幕叠加工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            display: flex;
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+        }
+
+        .left-panel {
+            flex: 1;
+            min-width: 350px;
+        }
+
+        .right-panel {
+            flex: 1;
+            min-width: 350px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .upload-section {
+            margin-bottom: 25px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .file-input-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .preview-section {
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .preview-section.active {
+            display: block;
+        }
+
+        .preview-img {
+            max-width: 100%;
+            max-height: 300px;
+            display: block;
+            margin: 0 auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .text-section {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .options-section {
+            margin-bottom: 25px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .option-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .option-group label {
+            margin-bottom: 5px;
+        }
+
+        input[type="number"], input[type="color"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        input[type="color"] {
+            height: 45px;
+            cursor: pointer;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .generate-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .result-section {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .result-section.active {
+            display: block;
+        }
+
+        .result-title {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .result-container {
+            display: block;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .result-img {
+            max-width: 100%;
+            display: block;
+            margin: 0 auto;
+            border-radius: 8px;
+        }
+
+        .download-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .download-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(56, 239, 125, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-panel">
+            <h1>图片字幕叠加工具</h1>
+
+            <div class="upload-section">
+                <div class="file-input-wrapper">
+                    <div class="file-input-btn">📁 选择上传图片</div>
+                    <input type="file" id="imageInput" accept="image/*">
+                </div>
+            </div>
+
+            <div class="preview-section" id="previewSection">
+                <label>图片预览：</label>
+                <img id="previewImg" class="preview-img" alt="预览图片">
+            </div>
+
+            <div class="text-section">
+                <label for="textInput">输入字幕文本（每行一张图）：</label>
+                <textarea id="textInput" placeholder="请输入字幕文本，每行将生成一张带字幕的图片&#10;第一行&#10;第二行&#10;第三行"></textarea>
+            </div>
+
+            <div class="options-section">
+                <div class="option-group">
+                    <label for="fontSize">字体大小：</label>
+                    <input type="number" id="fontSize" value="36" min="12" max="100">
+                </div>
+                <div class="option-group">
+                    <label for="textColor">字体颜色：</label>
+                    <input type="color" id="textColor" value="#ffffff">
+                </div>
+                <div class="option-group">
+                    <label for="bgColor">字幕背景色：</label>
+                    <input type="color" id="bgColor" value="#000000">
+                </div>
+                <div class="option-group">
+                    <label for="bgOpacity">背景透明度：</label>
+                    <input type="number" id="bgOpacity" value="0.7" min="0" max="1" step="0.1">
+                </div>
+            </div>
+
+            <button class="generate-btn" id="generateBtn" disabled>✨ 生成叠加图片</button>
+        </div>
+
+        <div class="right-panel">
+            <div class="result-section" id="resultSection">
+                <h2 class="result-title">生成结果</h2>
+                <div class="result-container" id="resultContainer"></div>
+                <div class="download-section">
+                    <button class="download-btn" id="downloadBtn">📥 下载图片</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const previewSection = document.getElementById('previewSection');
+        const previewImg = document.getElementById('previewImg');
+        const textInput = document.getElementById('textInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const resultSection = document.getElementById('resultSection');
+        const resultContainer = document.getElementById('resultContainer');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        let originalImage = null;
+        let generatedCanvas = null;
+
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    previewImg.src = event.target.result;
+                    previewSection.classList.add('active');
+                    
+                    originalImage = new Image();
+                    originalImage.onload = function() {
+                        generateBtn.disabled = false;
+                    };
+                    originalImage.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        generateBtn.addEventListener('click', function() {
+            if (!originalImage || !textInput.value.trim()) {
+                alert('请先上传图片并输入字幕文本！');
+                return;
+            }
+
+            const lines = textInput.value.trim().split('\n').filter(line => line.trim());
+            const fontSize = parseInt(document.getElementById('fontSize').value);
+            const textColor = document.getElementById('textColor').value;
+            const bgColor = document.getElementById('bgColor').value;
+            const bgOpacity = parseFloat(document.getElementById('bgOpacity').value);
+
+            resultContainer.innerHTML = '';
+
+            const padding = 20;
+            const bgHeight = fontSize + padding * 2;
+            const gap = 1; // 字幕行之间的间隙（0.25毫米）
+
+            const canvas = document.createElement('canvas');
+            canvas.width = originalImage.width;
+            canvas.height = originalImage.height + (bgHeight + gap) * (lines.length - 1);
+            const ctx = canvas.getContext('2d');
+
+            // 绘制第一行（原图+字幕）
+            ctx.drawImage(originalImage, 0, 0);
+            drawSubtitle(ctx, lines[0], fontSize, textColor, bgColor, bgOpacity, bgHeight, canvas.width, originalImage.height - bgHeight);
+
+            // 绘制后续行（只有字幕区域）
+            for (let i = 1; i < lines.length; i++) {
+                const yOffset = originalImage.height + (i - 1) * (bgHeight + gap) + gap;
+                const sourceY = originalImage.height - bgHeight;
+                
+                // 绘制背景图片
+                ctx.drawImage(originalImage, 0, sourceY, originalImage.width, bgHeight, 0, yOffset, originalImage.width, bgHeight);
+                
+                // 绘制字幕
+                drawSubtitle(ctx, lines[i], fontSize, textColor, bgColor, bgOpacity, bgHeight, canvas.width, yOffset);
+            }
+
+            const img = document.createElement('img');
+            img.src = canvas.toDataURL('image/png');
+            img.className = 'result-img';
+            resultContainer.appendChild(img);
+
+            generatedCanvas = canvas;
+            resultSection.classList.add('active');
+        });
+
+        // 绘制字幕的辅助函数
+        function drawSubtitle(ctx, text, fontSize, textColor, bgColor, bgOpacity, bgHeight, canvasWidth, yPosition) {
+            ctx.font = `bold ${fontSize}px "Microsoft YaHei", Arial, sans-serif`;
+            
+            // 绘制字幕背景
+            ctx.fillStyle = bgColor;
+            ctx.globalAlpha = bgOpacity;
+            ctx.fillRect(0, yPosition, canvasWidth, bgHeight);
+            ctx.globalAlpha = 1;
+            
+            // 绘制字幕文字
+            ctx.fillStyle = textColor;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, canvasWidth / 2, yPosition + bgHeight / 2);
+        }
+
+        downloadBtn.addEventListener('click', function() {
+            if (generatedCanvas) {
+                const link = document.createElement('a');
+                link.download = 'subtitle_image.png';
+                link.href = generatedCanvas.toDataURL('image/png');
+                link.click();
+            }
+        });
+    </script>
+</body>
+</html>
